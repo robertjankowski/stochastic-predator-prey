@@ -1,0 +1,7 @@
+[package]
+name = "stochastic-predator-prey"
+version = "0.1.0"
+authors = ["robertjankowski <robjanw11@wp.pl>"]
+edition = "2018"
+
+[dependencies]
