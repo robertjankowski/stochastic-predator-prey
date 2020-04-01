@@ -3,24 +3,29 @@ use itertools_num::linspace;
 use rand_distr::{Distribution, Normal};
 
 mod simulation;
+use simulation::{LotkaVolterraParameters, SimulationParameters};
 
 fn generate_from_normal_distr(mu: f64, std: f64) -> f64 {
     let normal_distr = Normal::new(mu, std).unwrap();
     normal_distr.sample(&mut rand::thread_rng())
 }
 
-fn main() {
+fn ornstein_uhlenbeck_process() {
     // Example Ornstein-Uhlenbeck process
     // https://www.pik-potsdam.de/members/franke/lecture-sose-2016/introduction-to-python.pdf
     let t0 = 0.0;
     let t_end = 2.0;
     let length = 2000;
-    let parameters = simulation::Parameters::new(0.0, 2.0, 1000);
+    let parameters = SimulationParameters::new(0.0, 2.0, 1000);
     let theta = 1.3;
     let mu = 1.8;
     let sigma = 0.4;
 
-    let t = linspace::<f64>(parameters.t_start(), parameters.t_end(), parameters.length());
+    let t = linspace::<f64>(
+        parameters.t_start(),
+        parameters.t_end(),
+        parameters.length(),
+    );
     let dt = (t_end - t0) / length as f64;
 
     let mut y: Vec<f64> = vec![0.0; length];
@@ -48,6 +53,39 @@ fn main() {
         .set_x_label("t", &[])
         .set_y_label("y", &[])
         .lines(x, y, &[Caption("First")]);
-    fg.set_terminal("pdfcairo", "test.pdf");
     fg.show().unwrap();
+}
+
+fn lotka_voterra() {
+    let lvp = LotkaVolterraParameters::new(0.6, 0.1, 0.75, 1.5);
+    let sp = SimulationParameters::new(0.0, 20.0, 1000);
+    let mut x = vec![0.0; sp.length()];
+    let mut y = vec![0.0; sp.length()];
+
+    x[0] = 5.0;
+    y[0] = 1.0;
+    for i in 1..sp.length() {
+        x[i] = x[i - 1] + (lvp.alpha() * x[i - 1] - lvp.beta() * x[i - 1] * y[i - 1]) * sp.dt();
+        y[i] = y[i - 1] + (lvp.delta() * x[i - 1] * y[i - 1] - lvp.gamma() * y[i - 1]) * sp.dt();
+    }
+
+    let time = sp.get_time();
+    plot_prey_predators(&x, &y, &time, None);
+}
+
+fn plot_prey_predators(x: &Vec<f64>, y: &Vec<f64>, time: &Vec<f64>, filename: Option<&str>) {
+    let mut fg = Figure::new();
+    fg.axes2d()
+        .set_title("Deterministic Lotka-Volterra Equations", &[])
+        .set_legend(Graph(0.5), Graph(0.9), &[], &[])
+        .set_x_label("t", &[])
+        .set_y_label("population", &[])
+        .lines(time, x, &[Caption("Prey")])
+        .lines(time, y, &[Caption("Predator")]);
+    filename.map(|s| fg.set_terminal("pdfcairo", s));
+    fg.show().unwrap();
+}
+
+fn main() {
+    lotka_voterra();
 }
