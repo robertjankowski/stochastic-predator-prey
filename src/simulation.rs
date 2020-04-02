@@ -1,4 +1,74 @@
 use itertools_num::linspace;
+use std::fs::File;
+use std::io::prelude::*;
+use std::io::Write;
+
+type PredatorsPreys = (Vec<f64>, Vec<f64>);
+
+pub struct LotkaVolterraSimulation {
+    predators_preys: Vec<PredatorsPreys>,
+    time: Vec<f64>,
+    dt: f64,
+    lvp: LotkaVolterraParameters,
+}
+
+impl LotkaVolterraSimulation {
+    pub fn new(sp: &SimulationParameters, lvp: LotkaVolterraParameters) -> LotkaVolterraSimulation {
+        LotkaVolterraSimulation {
+            predators_preys: vec![],
+            time: sp.get_time(),
+            dt: sp.dt(),
+            lvp,
+        }
+    }
+
+    fn get_initial_predators_preys(
+        &self,
+        length: usize,
+        initial_x: f64,
+        initial_y: f64,
+    ) -> (Vec<f64>, Vec<f64>) {
+        let mut x = vec![0.0; length];
+        let mut y = vec![0.0; length];
+        x[0] = initial_x;
+        y[0] = initial_y;
+        (x, y)
+    }
+
+    pub fn save_data(&self, filename: Option<&str>) {
+        let values: Vec<_> = self
+            .predators_preys
+            .iter()
+            .map(|(xs, ys)| {
+                let xy: Vec<(f64, f64)> = xs.iter().map(|x| x.clone()).zip(ys.clone()).collect();
+            })
+            .collect();
+
+        filename.map(|s| {
+            // TODO: write to each file!! 
+            let mut f = File::create(s).expect("Unable to create file");
+            for (xs, ys) in &self.predators_preys {
+                for (x, y) in xs.iter().zip(ys) {
+                    write!(f, "{},{}\n", x, y);
+                }
+            }
+        });
+    }
+
+    pub fn run_single_deterministic(&mut self, initial_x: f64, initial_y: f64) {
+        let (mut x, mut y) =
+            self.get_initial_predators_preys(self.time.len(), initial_x, initial_y);
+
+        for i in 1..self.time.len() {
+            x[i] = x[i - 1]
+                + (self.lvp.alpha() * x[i - 1] - self.lvp.beta() * x[i - 1] * y[i - 1]) * self.dt;
+            y[i] = y[i - 1]
+                + (self.lvp.delta() * x[i - 1] * y[i - 1] - self.lvp.gamma() * y[i - 1]) * self.dt;
+        }
+
+        self.predators_preys.push((x, y));
+    }
+}
 
 pub struct LotkaVolterraParameters {
     alpha: f64, // the natural growing rate of rabbits, when there's no fox
@@ -37,7 +107,7 @@ pub struct SimulationParameters {
     t_start: f64,
     t_end: f64,
     length: usize,
-    dt: f64
+    dt: f64,
 }
 
 impl SimulationParameters {

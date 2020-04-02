@@ -3,7 +3,7 @@ use itertools_num::linspace;
 use rand_distr::{Distribution, Normal};
 
 mod simulation;
-use simulation::{LotkaVolterraParameters, SimulationParameters};
+use simulation::{LotkaVolterraParameters, SimulationParameters, LotkaVolterraSimulation};
 
 fn generate_from_normal_distr(mu: f64, std: f64) -> f64 {
     let normal_distr = Normal::new(mu, std).unwrap();
@@ -59,18 +59,15 @@ fn ornstein_uhlenbeck_process() {
 fn lotka_voterra() {
     let lvp = LotkaVolterraParameters::new(0.6, 0.1, 0.75, 1.5);
     let sp = SimulationParameters::new(0.0, 20.0, 1000);
-    let mut x = vec![0.0; sp.length()];
-    let mut y = vec![0.0; sp.length()];
-
-    x[0] = 5.0;
-    y[0] = 1.0;
-    for i in 1..sp.length() {
-        x[i] = x[i - 1] + (lvp.alpha() * x[i - 1] - lvp.beta() * x[i - 1] * y[i - 1]) * sp.dt();
-        y[i] = y[i - 1] + (lvp.delta() * x[i - 1] * y[i - 1] - lvp.gamma() * y[i - 1]) * sp.dt();
-    }
-
-    let time = sp.get_time();
-    plot_prey_predators(&x, &y, &time, None);
+    let mut lv_simulation = LotkaVolterraSimulation::new(&sp, lvp);
+    lv_simulation.run_single_deterministic(5.0, 1.0);
+    lv_simulation.run_single_deterministic(5.0, 3.0);
+    lv_simulation.run_single_deterministic(5.0, 5.0);
+    lv_simulation.run_single_deterministic(5.0, 10.0);
+    lv_simulation.run_single_deterministic(5.0, 20.0);
+    
+    // lv_simulation.plot_prey_predators(None);
+    lv_simulation.save_data(Some("test.csv"));
 }
 
 fn plot_prey_predators(x: &Vec<f64>, y: &Vec<f64>, time: &Vec<f64>, filename: Option<&str>) {
