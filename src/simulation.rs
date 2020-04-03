@@ -1,4 +1,5 @@
 use itertools_num::linspace;
+use rand_distr::{Distribution, Normal};
 use std::fs;
 use std::io::Write;
 
@@ -85,6 +86,34 @@ impl LotkaVolterraSimulation {
             self.run_single_deterministic(initial_x, initial_y);
         }
     }
+
+    pub fn run_single_stochastic(&mut self, initial_x: f64, initial_y: f64, sigma: f64) {
+        let (mut x, mut y) =
+            self.get_initial_predators_preys(self.time.len(), initial_x, initial_y);
+
+        let noise_prey: Vec<_> = (0..self.time.len())
+            .map(|_| generate_from_normal_distr(0.0, 1.0) * self.dt.sqrt())
+            .collect();
+        let noise_predator: Vec<_> = (0..self.time.len())
+            .map(|_| generate_from_normal_distr(0.0, 1.0) * self.dt.sqrt())
+            .collect();
+
+        for i in 1..self.time.len() {
+            x[i] = x[i - 1]
+                + (self.lvp.alpha() * x[i - 1] - self.lvp.beta() * x[i - 1] * y[i - 1]) * self.dt
+                + sigma * noise_prey[i];
+            y[i] = y[i - 1]
+                + (self.lvp.delta() * x[i - 1] * y[i - 1] - self.lvp.gamma() * y[i - 1]) * self.dt
+                + sigma * noise_predator[i];
+        }
+        self.predators_preys.push((x, y));
+    }
+
+    pub fn run_stochastic(&mut self, n_iteration: i32, initial_x: f64, initial_y: f64, sigma: f64) {
+        for _ in 0..n_iteration {
+            self.run_single_stochastic(initial_x, initial_y, sigma)
+        }
+    }
 }
 
 pub struct LotkaVolterraParameters {
@@ -146,4 +175,9 @@ impl SimulationParameters {
         let time = linspace::<f64>(self.t_start, self.t_end, self.length);
         time.collect::<Vec<_>>()
     }
+}
+
+fn generate_from_normal_distr(mu: f64, std: f64) -> f64 {
+    let normal_distr = Normal::new(mu, std).unwrap();
+    normal_distr.sample(&mut rand::thread_rng())
 }

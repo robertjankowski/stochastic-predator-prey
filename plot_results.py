@@ -24,7 +24,7 @@ def plot_results(folder: str):
         i += 1
     plt.xlabel('t')
     plt.ylabel('population')
-    # plt.legend()
+    plt.legend()
     plt.show()
 
 
