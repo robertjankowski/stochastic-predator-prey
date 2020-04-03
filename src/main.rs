@@ -1,9 +1,8 @@
-use gnuplot::*;
 use itertools_num::linspace;
 use rand_distr::{Distribution, Normal};
 
 mod simulation;
-use simulation::{LotkaVolterraParameters, SimulationParameters, LotkaVolterraSimulation};
+use simulation::{LotkaVolterraParameters, LotkaVolterraSimulation, SimulationParameters};
 
 fn generate_from_normal_distr(mu: f64, std: f64) -> f64 {
     let normal_distr = Normal::new(mu, std).unwrap();
@@ -45,44 +44,12 @@ fn ornstein_uhlenbeck_process() {
             + diffusion(y[i - 1], i as f64 * dt) * noise[i];
     }
     let x: Vec<_> = (0..length).collect();
-
-    let mut fg = Figure::new();
-    fg.axes2d()
-        .set_title("Ornstein-Uhlenbeck process", &[])
-        .set_legend(Graph(0.5), Graph(0.9), &[], &[])
-        .set_x_label("t", &[])
-        .set_y_label("y", &[])
-        .lines(x, y, &[Caption("First")]);
-    fg.show().unwrap();
-}
-
-fn lotka_voterra() {
-    let lvp = LotkaVolterraParameters::new(0.6, 0.1, 0.75, 1.5);
-    let sp = SimulationParameters::new(0.0, 20.0, 1000);
-    let mut lv_simulation = LotkaVolterraSimulation::new(&sp, lvp);
-    lv_simulation.run_single_deterministic(5.0, 1.0);
-    lv_simulation.run_single_deterministic(5.0, 3.0);
-    lv_simulation.run_single_deterministic(5.0, 5.0);
-    lv_simulation.run_single_deterministic(5.0, 10.0);
-    lv_simulation.run_single_deterministic(5.0, 20.0);
-    
-    // lv_simulation.plot_prey_predators(None);
-    lv_simulation.save_data(Some("test.csv"));
-}
-
-fn plot_prey_predators(x: &Vec<f64>, y: &Vec<f64>, time: &Vec<f64>, filename: Option<&str>) {
-    let mut fg = Figure::new();
-    fg.axes2d()
-        .set_title("Deterministic Lotka-Volterra Equations", &[])
-        .set_legend(Graph(0.5), Graph(0.9), &[], &[])
-        .set_x_label("t", &[])
-        .set_y_label("population", &[])
-        .lines(time, x, &[Caption("Prey")])
-        .lines(time, y, &[Caption("Predator")]);
-    filename.map(|s| fg.set_terminal("pdfcairo", s));
-    fg.show().unwrap();
 }
 
 fn main() {
-    lotka_voterra();
+    let lvp = LotkaVolterraParameters::new(0.6, 0.1, 0.75, 1.5);
+    let sp = SimulationParameters::new(0.0, 20.0, 1000);
+    let mut lv_simulation = LotkaVolterraSimulation::new(&sp, lvp);
+    lv_simulation.run_deterministic(10, 4.0, 4.0);
+    lv_simulation.save_data("deterministic2");
 }

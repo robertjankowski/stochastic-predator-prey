@@ -1,6 +1,5 @@
 use itertools_num::linspace;
-use std::fs::File;
-use std::io::prelude::*;
+use std::fs;
 use std::io::Write;
 
 type PredatorsPreys = (Vec<f64>, Vec<f64>);
@@ -35,24 +34,36 @@ impl LotkaVolterraSimulation {
         (x, y)
     }
 
-    pub fn save_data(&self, filename: Option<&str>) {
+    pub fn save_data(&self, folder: &str) {
+        fs::create_dir(format!("data/{}", folder)).expect("Unable to create folder.");
+        let lv_params = format!(
+            "alpha={}_beta={}_delta={}_gamma={}",
+            self.lvp.alpha(),
+            self.lvp.beta(),
+            self.lvp.delta(),
+            self.lvp.gamma()
+        );
+
         let values: Vec<_> = self
             .predators_preys
             .iter()
             .map(|(xs, ys)| {
                 let xy: Vec<(f64, f64)> = xs.iter().map(|x| x.clone()).zip(ys.clone()).collect();
+                xy
             })
             .collect();
-
-        filename.map(|s| {
-            // TODO: write to each file!! 
-            let mut f = File::create(s).expect("Unable to create file");
-            for (xs, ys) in &self.predators_preys {
-                for (x, y) in xs.iter().zip(ys) {
-                    write!(f, "{},{}\n", x, y);
-                }
-            }
-        });
+        let mut i = 0;
+        for vec in &values {
+            let filename = format!("data/{}/{}_i={}.csv", folder, lv_params, i);
+            fs::File::create(filename)
+                .map(|mut f| {
+                    for (x, y) in vec {
+                        write!(f, "{:.4},{:.4}\n", x, y);
+                    }
+                })
+                .expect("Unable to create file.");
+            i += 1;
+        }
     }
 
     pub fn run_single_deterministic(&mut self, initial_x: f64, initial_y: f64) {
@@ -65,8 +76,13 @@ impl LotkaVolterraSimulation {
             y[i] = y[i - 1]
                 + (self.lvp.delta() * x[i - 1] * y[i - 1] - self.lvp.gamma() * y[i - 1]) * self.dt;
         }
-
         self.predators_preys.push((x, y));
+    }
+
+    pub fn run_deterministic(&mut self, n_iteration: i32, initial_x: f64, initial_y: f64) {
+        for _ in 0..n_iteration {
+            self.run_single_deterministic(initial_x, initial_y);
+        }
     }
 }
 
@@ -119,18 +135,6 @@ impl SimulationParameters {
             length,
             dt,
         }
-    }
-
-    pub fn t_start(&self) -> f64 {
-        self.t_start
-    }
-
-    pub fn t_end(&self) -> f64 {
-        self.t_end
-    }
-
-    pub fn length(&self) -> usize {
-        self.length
     }
 
     pub fn dt(&self) -> f64 {
