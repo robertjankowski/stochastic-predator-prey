@@ -1,4 +1,3 @@
-use itertools_num::linspace;
 use rand_distr::{Distribution, Normal};
 
 mod simulation;
@@ -15,16 +14,10 @@ fn ornstein_uhlenbeck_process() {
     let t0 = 0.0;
     let t_end = 2.0;
     let length = 2000;
-    let parameters = SimulationParameters::new(0.0, 2.0, 1000);
     let theta = 1.3;
     let mu = 1.8;
     let sigma = 0.4;
 
-    let t = linspace::<f64>(
-        parameters.t_start(),
-        parameters.t_end(),
-        parameters.length(),
-    );
     let dt = (t_end - t0) / length as f64;
 
     let mut y: Vec<f64> = vec![0.0; length];
@@ -48,8 +41,8 @@ fn ornstein_uhlenbeck_process() {
 
 fn main() {
     let lvp = LotkaVolterraParameters::new(0.6, 0.1, 0.75, 1.5);
-    let sp = SimulationParameters::new(0.0, 20.0, 1000);
+    let sp = SimulationParameters::new(0.0, 20.0, 10000);
     let mut lv_simulation = LotkaVolterraSimulation::new(&sp, lvp);
-    lv_simulation.run_deterministic(10, 4.0, 4.0);
+    lv_simulation.run_deterministic(20, 1.0, 4.0);
     lv_simulation.save_data("deterministic2");
 }

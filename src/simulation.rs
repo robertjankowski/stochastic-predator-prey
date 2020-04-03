@@ -37,7 +37,8 @@ impl LotkaVolterraSimulation {
     pub fn save_data(&self, folder: &str) {
         fs::create_dir(format!("data/{}", folder)).expect("Unable to create folder.");
         let lv_params = format!(
-            "alpha={}_beta={}_delta={}_gamma={}",
+            "dt={}_alpha={}_beta={}_delta={}_gamma={}",
+            self.dt,
             self.lvp.alpha(),
             self.lvp.beta(),
             self.lvp.delta(),
