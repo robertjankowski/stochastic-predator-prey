@@ -50,8 +50,10 @@ impl LotkaVolterraSimulation {
             .predators_preys
             .iter()
             .map(|(xs, ys)| {
-                let xy: Vec<(f64, f64)> = xs.iter().map(|x| x.clone()).zip(ys.clone()).collect();
-                xy
+                xs.iter()
+                    .map(|x| x.clone())
+                    .zip(ys.clone())
+                    .collect::<Vec<_>>()
             })
             .collect();
         let mut i = 0;
@@ -87,32 +89,49 @@ impl LotkaVolterraSimulation {
         }
     }
 
-    pub fn run_single_stochastic(&mut self, initial_x: f64, initial_y: f64, sigma: f64) {
+    pub fn run_single_stochastic(
+        &mut self,
+        initial_x: f64,
+        initial_y: f64,
+        sigma_x: f64,
+        sigma_y: f64,
+    ) {
         let (mut x, mut y) =
             self.get_initial_predators_preys(self.time.len(), initial_x, initial_y);
 
-        let noise_prey: Vec<_> = (0..self.time.len())
-            .map(|_| generate_from_normal_distr(0.0, 1.0) * self.dt.sqrt())
-            .collect();
-        let noise_predator: Vec<_> = (0..self.time.len())
-            .map(|_| generate_from_normal_distr(0.0, 1.0) * self.dt.sqrt())
-            .collect();
+        let noise_prey = self.create_normal_noise(self.time.len(), 0.0, 1.0);
+        let noise_predator = self.create_normal_noise(self.time.len(), 0.0, 1.0);
 
         for i in 1..self.time.len() {
             x[i] = x[i - 1]
                 + (self.lvp.alpha() * x[i - 1] - self.lvp.beta() * x[i - 1] * y[i - 1]) * self.dt
-                + sigma * noise_prey[i];
+                + sigma_x * noise_prey[i];
             y[i] = y[i - 1]
                 + (self.lvp.delta() * x[i - 1] * y[i - 1] - self.lvp.gamma() * y[i - 1]) * self.dt
-                + sigma * noise_predator[i];
+                + sigma_y * noise_predator[i];
         }
         self.predators_preys.push((x, y));
     }
 
-    pub fn run_stochastic(&mut self, n_iteration: i32, initial_x: f64, initial_y: f64, sigma: f64) {
+    pub fn run_stochastic(
+        &mut self,
+        n_iteration: i32,
+        initial_x: f64,
+        initial_y: f64,
+        sigma_x: f64,
+        sigma_y: f64,
+    ) {
         for _ in 0..n_iteration {
-            self.run_single_stochastic(initial_x, initial_y, sigma)
+            self.run_single_stochastic(initial_x, initial_y, sigma_x, sigma_y);
         }
+    }
+
+    fn create_normal_noise(&self, lenght: usize, mu: f64, sigma: f64) -> Vec<f64> {
+        // Can be optimized if mu=0, sigma=1
+        // https://docs.rs/rand_distr/0.2.2/rand_distr/struct.StandardNormal.html
+        (0..lenght)
+            .map(|_| generate_from_normal_distr(mu, sigma) * self.dt.sqrt())
+            .collect()
     }
 }
 
