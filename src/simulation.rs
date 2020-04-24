@@ -45,7 +45,6 @@ impl LotkaVolterraSimulation {
             self.lvp.delta(),
             self.lvp.gamma()
         );
-
         let values: Vec<_> = self
             .predators_preys
             .iter()
