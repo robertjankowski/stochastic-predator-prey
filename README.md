@@ -1,8 +1,27 @@
 ### Simulation of Lotka-Volterra model with stochastic component
 
 
-[Basic Lotka-Volterra model](https://en.wikipedia.org/wiki/Lotka%E2%80%93Volterra_equations)
+[Deterministic Lotka-Volterra model](https://en.wikipedia.org/wiki/Lotka%E2%80%93Volterra_equations) has form:
 
-<img src="https://latex.codecogs.com/svg.latex?\\&space;\frac{dx}{dt}&space;=&space;\alpha&space;x&space;-&space;\beta&space;x&space;y&space;\\&space;\frac{dy}{dt}&space;=&space;\delta&space;x&space;y&space;-&space;\gamma&space;y" title="\\ \frac{dx}{dt} = \alpha x - \beta x y \\ \frac{dy}{dt} = \delta x y - \gamma y" />
+```math
+\frac{dx}{dt} = \alpha x - \beta xy \\
+\frac{dy}{dt} = \delta xy - \gamma y
+```
 
 Where `x` - number of prey, `y` number of predator.
+
+Adding to the equations the stochastic component:
+
+```math
+dx = (\alpha x - \beta xy) dt + \sigma_1 dW \\
+dy = (\delta xy - \gamma y) dt + \sigma_2 dW
+```
+
+We can solve this equations using numerical approach (Euler-Maruyama method)
+
+```math
+x_t = x_{t-1} + (\alpha x_{t-1} - \beta x_{t-1}y_{t-1}) \Delta t + \sigma_1 \Delta W \\
+y_t = y_{t-1} + (\delta x_{t-1}y_{t-1} - \gamma y_{t-1}) \Delta t + \sigma_2 \Delta W
+```
+
+Where $`\Delta W`$ is Wiener process ($`\mathcal{N}(0, \Delta t)`$), $`\sigma_1`$ and $`\sigma_2`$ are constants.

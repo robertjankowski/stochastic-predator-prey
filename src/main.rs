@@ -11,5 +11,6 @@ fn main() {
     let sigma_x = 0.1;
     let sigma_y = 0.2;
     lv_simulation.run_stochastic(n_iteration, initial_x, initial_y, sigma_x, sigma_y);
-    //lv_simulation.save_data("stochastic1");
+    // lv_simulation.run_deterministic(n_iteration, initial_x, initial_y);
+    lv_simulation.save_data("stochastic_x=3_y=3");
 }
