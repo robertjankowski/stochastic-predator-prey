@@ -31,3 +31,9 @@ y_t = y_{t-1} + (\delta x_{t-1}y_{t-1} - \gamma y_{t-1}) \Delta t + \sigma_2 \De
 $$
 
 Where $\Delta W$ is Wiener process ($\mathcal{N}(0, \Delta t)$), $\sigma_1$ and $\sigma_2$ are constants.
+
+### Results for: $\alpha = 1.5, \beta=1, \delta=1, \gamma=3$
+
+| ![a1](figures/animation_alpha=1.5_beta=1_delta=1_gamma=3_sigma_x=0.1_sigma_y=0.1.gif)  	|  ![a2](figures/animation_alpha=1.5_beta=1_delta=1_gamma=3_sigma_x=0.1_sigma_y=0.5.gif) 	|
+|:------------------------:	   |  :-------------------------:	|
+| ![a3](figures/animation_alpha=1.5_beta=1_delta=1_gamma=3_sigma_x=0.5_sigma_y=0.1.gif)  	|   ![a4](figures/animation_alpha=1.5_beta=1_delta=1_gamma=3_sigma_x=0.5_sigma_y=0.5.gif)	|

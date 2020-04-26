@@ -8,6 +8,33 @@ from matplotlib import animation, rcParams, cycler
 cmap = plt.cm.jet
 
 
+def get_sigma_x_y(stochastic_folder: str):
+    file = glob.glob(stochastic_folder + "/*.csv")[0]
+    if not file:
+        print('Could not load sigma x and sigma y from file')
+        return
+    sigmas = file.split('sigma_x=')[1].split('_sigma_y=')
+    sigma_x = sigmas[0]
+    sigma_y = sigmas[1].split('_')[0]
+    return sigma_x, sigma_y
+
+
+def get_lotka_volterra_params(stochastic_folder: str):
+    file = glob.glob(stochastic_folder + "/*.csv")[0]
+    if not file:
+        print('Could not load Lotka-Volterra parameters from file')
+        return
+    params = file.split('_alpha=')[1].split('_beta=')
+    alpha = params[0]
+    params = params[1].split('_delta=')
+    beta = params[0]
+    params = params[1].split('_gamma=')
+    delta = params[0]
+    params = params[1].split('_sigma_x=')
+    gamma = params[0]
+    return alpha, beta, delta, gamma
+
+
 def get_dt_from_file(filename: str):
     dt = filename.split("/")[-1]
     return float(dt.split("_alpha")[0].split("=")[-1])
@@ -33,36 +60,60 @@ def get_x_lim(df):
     return np.min(df.time), np.max(df.time)
 
 
-def get_y_lim(dfs):
+def get_y_lim(dfs, df_deterministic):
     y_min = []
     y_max = []
     for df in dfs:
         y_min.append(np.min([np.min(df.prey), np.min(df.predator)]))
         y_max.append(np.max([np.max(df.prey), np.max(df.predator)]))
+    y_min.append(np.min([np.min(df_deterministic.prey),
+                         np.min(df_deterministic.predator)]))
+    y_max.append(np.max([np.max(df_deterministic.prey),
+                         np.max(df_deterministic.predator)]))
     return np.min(y_min), np.max(y_max)
 
 
-def animate_results(folder: str, anim_name: str, n_obs: int):
-    dfs = load_datasets(folder, n_obs)
+def animate_results(stochastic_folder: str, deterministic_folder: str, n_obs: int):
+    dfs = load_datasets(stochastic_folder, n_obs)
+    df_deterministic = load_datasets(deterministic_folder, 1)[0]
+    sigma_x, sigma_y = get_sigma_x_y(stochastic_folder)
+    alpha, beta, delta, gamma = get_lotka_volterra_params(stochastic_folder)
 
     def animate(i):
         plt.clf()
         plt.xlim(get_x_lim(dfs[0]))
-        plt.ylim(get_y_lim(dfs))
+        plt.ylim(get_y_lim(dfs, df_deterministic))
         for num, df in enumerate(dfs[:5]):
             plt.plot(df.time[: (i * 10)],
-                     df.prey[: (i * 10)], label=f"prey {num}")
+                     df.prey[: (i * 10)], label=f"stochastic prey {num + 1}")
             plt.plot(df.time[: (i * 10)],
-                     df.predator[: (i * 10)], label=f"predator {num}")
-        plt.legend(loc="upper left")
+                     df.predator[: (i * 10)], label=f"stochastic predator {num + 1}")
+        plt.plot(
+            df_deterministic.time[: (i * 10)],
+            df_deterministic.prey[: (i * 10)],
+            label=f"deterministic prey",
+            color="black",
+            linewidth=2.5
+        )
+        plt.plot(
+            df_deterministic.time[: (i * 10)],
+            df_deterministic.predator[: (i * 10)],
+            label=f"deterministic predator",
+            color="red",
+            linewidth=2.5
+        )
+        plt.legend(loc="upper right")
         plt.xlabel("time")
+        plt.title(r'$\alpha = {}, \beta = {}, \delta = {}, \gamma = {}, \sigma_x = {}, \sigma_y = {}$'.format(
+            alpha, beta, delta, gamma, sigma_x, sigma_y))
         plt.ylabel("population")
-
-    fig, ax = plt.subplots(figsize=(10, 8))
+    fig, ax = plt.subplots(figsize=(10, 6))
     anim = animation.FuncAnimation(
-        fig, animate, frames=(int)(len(dfs[0].time) / 10), interval=10, repeat=True
+        fig, animate, frames=(int)(len(dfs[0].time) / 10), interval=5, repeat=True
     )
-    anim.save(anim_name + ".gif", writer="imagemagick")
+    anim.save(
+        f'figures/animation_alpha={alpha}_beta={beta}_delta={delta}_gamma={gamma}_sigma_x={sigma_x}_sigma_y={sigma_y}.gif',
+        writer="imagemagick")
 
 
 def plot_results_deterministic(df_deterministic):
@@ -71,63 +122,39 @@ def plot_results_deterministic(df_deterministic):
         df_deterministic.prey,
         label="deterministic prey",
         color="black",
-        linewidth=2.5,
+        linewidth=2.5
     )
     plt.plot(
         df_deterministic.time,
         df_deterministic.predator,
         label="deterministic predator",
         color="red",
-        linewidth=2.5,
+        linewidth=2.5
     )
 
 
-def get_sigma_x_y(stochastic_folder: str):
-    file = glob.glob(stochastic_folder + "/*.csv")[0]
-    if not file:
-        print('Could not load sigma x and sigma y from file')
-        return
-    sigmas = file.split('sigma_x=')[1].split('_sigma_y=')
-    sigma_x = sigmas[0]
-    sigma_y = sigmas[1].split('_')[0]
-    return sigma_x, sigma_y
-
-
-def get_lotka_volterra_params(stochastic_folder: str):
-    file = glob.glob(stochastic_folder + "/*.csv")[0]
-    if not file:
-        print('Could not load Lotka-Volterra parameters from file')
-        return
-    params = file.split('_alpha=')[1].split('_beta=')
-    alpha = params[0]
-    params = params[1].split('_delta=')
-    beta = params[0]
-    params = params[1].split('_gamma=')
-    delta = params[0]
-    params = params[1].split('_sigma_x=')
-    gamma = params[0]
-    return alpha, beta, gamma, delta
-
-
-def plot_results(stochastic_folder: str, deterministic_folder: str, n_obs: int):
+def plot_results(stochastic_folder: str, deterministic_folder: str, n_obs: int, savefig=False):
     dfs = load_datasets(stochastic_folder, n_obs)
+    df_deterministic = load_datasets(deterministic_folder, 1)[0]
+    sigma_x, sigma_y = get_sigma_x_y(stochastic_folder)
+    alpha, beta, delta, gamma = get_lotka_volterra_params(stochastic_folder)
+
     plt.figure(figsize=(10, 6))
     for i, df in enumerate(dfs):
         plt.plot(df.time, df.prey, label=f"stochastic prey {i + 1}")
         plt.plot(df.time, df.predator, label=f"stochastic predator {i + 1}")
-    df_deterministic = load_datasets(deterministic_folder, 1)[0]
     plot_results_deterministic(df_deterministic)
     plt.xlabel("t")
     plt.ylabel("population")
-    sigma_x, sigma_y = get_sigma_x_y(stochastic_folder)
-    alpha, beta, delta, gamma = get_lotka_volterra_params(stochastic_folder)
     plt.title(r'$\alpha = {}, \beta = {}, \delta = {}, \gamma = {}, \sigma_x = {}, \sigma_y = {}$'.format(
-        alpha, beta, gamma, delta, sigma_x, sigma_y))
+        alpha, beta, delta, gamma, sigma_x, sigma_y))
     plt.legend()
-    plt.savefig(
-        f'figures/alpha={alpha}_beta={beta}_delta={delta}_gamma={gamma}_sigma_x={sigma_x}_sigma_y={sigma_y}.pdf',
-        bbox_inches='tight')
-    # plt.show()
+    if savefig:
+        plt.savefig(
+            f'figures/alpha={alpha}_beta={beta}_delta={delta}_gamma={gamma}_sigma_x={sigma_x}_sigma_y={sigma_y}.pdf',
+            bbox_inches='tight')
+    else:
+        plt.show()
 
 
 if __name__ == "__main__":
@@ -153,5 +180,5 @@ if __name__ == "__main__":
     n_obs = results.n_obs_stochastic
     deterministic_folder = results.deterministic_folder_name
 
-    plot_results(stochastic_folder, deterministic_folder, n_obs)
-    # animate_results(results.folder_name, 'stochastic')
+    # plot_results(stochastic_folder, deterministic_folder, n_obs, savefig=True)
+    animate_results(stochastic_folder, deterministic_folder, n_obs)
