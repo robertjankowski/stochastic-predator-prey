@@ -148,7 +148,7 @@ def plot_results(stochastic_folder: str, deterministic_folder: str, n_obs: int, 
     plt.ylabel("population")
     plt.title(r'$\alpha = {}, \beta = {}, \delta = {}, \gamma = {}, \sigma_x = {}, \sigma_y = {}$'.format(
         alpha, beta, delta, gamma, sigma_x, sigma_y))
-    plt.legend()
+    plt.legend(loc='upper left')
     if savefig:
         plt.savefig(
             f'figures/alpha={alpha}_beta={beta}_delta={delta}_gamma={gamma}_sigma_x={sigma_x}_sigma_y={sigma_y}.pdf',
@@ -211,6 +211,6 @@ if __name__ == "__main__":
     deterministic_folder = results.deterministic_folder_name
 
     # plot_results(stochastic_folder, deterministic_folder, n_obs, savefig=True)
-    plot_phase_space(stochastic_folder, deterministic_folder,
-                     n_obs, savefig=True)
-    # animate_results(stochastic_folder, deterministic_folder, n_obs)
+    # plot_phase_space(stochastic_folder, deterministic_folder,
+    #                  n_obs, savefig=True)
+    animate_results(stochastic_folder, deterministic_folder, n_obs)
