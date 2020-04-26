@@ -20,8 +20,14 @@ We can solve those equations using numerical approach i.e. Euler-Maruyama method
 
 Where <img src="/tex/8d9b176fd459e329c57782488a188936.svg?invert_in_darkmode&sanitize=true" align=middle width=31.50693314999999pt height=22.465723500000017pt/> is Wiener process (<img src="/tex/9d1ddb149d5ffa2d775cf7abfa2a4ed3.svg?invert_in_darkmode&sanitize=true" align=middle width=63.855150149999986pt height=24.65753399999998pt/>), <img src="/tex/9811b1e861c58c0f72de45f573e7eea4.svg?invert_in_darkmode&sanitize=true" align=middle width=15.94565279999999pt height=14.15524440000002pt/> and <img src="/tex/0318cc8a44e98dfa8db4cd5b6f731ed4.svg?invert_in_darkmode&sanitize=true" align=middle width=15.94565279999999pt height=14.15524440000002pt/> are constants.
 
-### Results for: <img src="/tex/2d015dbbba44c91dfeb84f2f01069795.svg?invert_in_darkmode&sanitize=true" align=middle width=193.34440619999998pt height=22.831056599999986pt/>
+### Results for: <img src="/tex/2d015dbbba44c91dfeb84f2f01069795.svg?invert_in_darkmode&sanitize=true" align=middle width=193.34440619999998pt height=22.831056599999986pt/> with <img src="/tex/34277b7589d7c76b8871c5bf51945626.svg?invert_in_darkmode&sanitize=true" align=middle width=103.51409969999999pt height=24.65753399999998pt/> and <img src="/tex/a792d178d0107e0d0544e40b600b6c38.svg?invert_in_darkmode&sanitize=true" align=middle width=103.13933519999998pt height=24.65753399999998pt/>
 
 | ![a1](figures/animation_alpha=1.5_beta=1_delta=1_gamma=3_sigma_x=0.1_sigma_y=0.1.gif) | ![a2](figures/animation_alpha=1.5_beta=1_delta=1_gamma=3_sigma_x=0.1_sigma_y=0.5.gif) |
 | :-----------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------: |
 | ![a3](figures/animation_alpha=1.5_beta=1_delta=1_gamma=3_sigma_x=0.5_sigma_y=0.1.gif) | ![a4](figures/animation_alpha=1.5_beta=1_delta=1_gamma=3_sigma_x=0.5_sigma_y=0.5.gif) |
+
+### Results for: <img src="/tex/11ddf22ba37374c6b8f9ca1288149b61.svg?invert_in_darkmode&sanitize=true" align=middle width=248.13912584999994pt height=22.831056599999986pt/> with <img src="/tex/34277b7589d7c76b8871c5bf51945626.svg?invert_in_darkmode&sanitize=true" align=middle width=103.51409969999999pt height=24.65753399999998pt/> and <img src="/tex/a792d178d0107e0d0544e40b600b6c38.svg?invert_in_darkmode&sanitize=true" align=middle width=103.13933519999998pt height=24.65753399999998pt/>
+
+| ![a1](figures/animation_alpha=0.9_beta=0.5_delta=0.25_gamma=0.75_sigma_x=0.1_sigma_y=0.1.gif) | ![a2](figures/animation_alpha=0.9_beta=0.5_delta=0.25_gamma=0.75_sigma_x=0.1_sigma_y=0.5.gif) |
+| :-------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------: |
+| ![a3](figures/animation_alpha=0.9_beta=0.5_delta=0.25_gamma=0.75_sigma_x=0.5_sigma_y=0.1.gif) | ![a4](figures/animation_alpha=0.9_beta=0.5_delta=0.25_gamma=0.75_sigma_x=0.5_sigma_y=0.5.gif) |
