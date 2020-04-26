@@ -157,6 +157,36 @@ def plot_results(stochastic_folder: str, deterministic_folder: str, n_obs: int, 
         plt.show()
 
 
+def plot_phase_space(stochastic_folder: str, deterministic_folder: str, n_obs: int, savefig=False):
+    dfs = load_datasets(stochastic_folder, n_obs)
+    df_deterministic = load_datasets(deterministic_folder, 1)[0]
+    sigma_x, sigma_y = get_sigma_x_y(stochastic_folder)
+    alpha, beta, delta, gamma = get_lotka_volterra_params(stochastic_folder)
+
+    plt.figure(figsize=(10, 6))
+    for i, df in enumerate(dfs):
+        plt.plot(df.prey, df.predator,
+                 label=f"stochastic prey vs predator {i + 1}")
+    plt.plot(
+        df_deterministic.prey,
+        df_deterministic.predator,
+        label="deterministic prey vs predator",
+        color="black",
+        linewidth=2.5
+    )
+    plt.xlabel("# prey")
+    plt.ylabel("# predator")
+    plt.title(r'$\alpha = {}, \beta = {}, \delta = {}, \gamma = {}, \sigma_x = {}, \sigma_y = {}$'.format(
+        alpha, beta, delta, gamma, sigma_x, sigma_y))
+    plt.legend()
+    if savefig:
+        plt.savefig(
+            f'figures/phase_diagram_alpha={alpha}_beta={beta}_delta={delta}_gamma={gamma}_sigma_x={sigma_x}_sigma_y={sigma_y}.pdf',
+            bbox_inches='tight')
+    else:
+        plt.show()
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Plot simulation results")
     parser.add_argument(
@@ -181,4 +211,6 @@ if __name__ == "__main__":
     deterministic_folder = results.deterministic_folder_name
 
     # plot_results(stochastic_folder, deterministic_folder, n_obs, savefig=True)
-    animate_results(stochastic_folder, deterministic_folder, n_obs)
+    plot_phase_space(stochastic_folder, deterministic_folder,
+                     n_obs, savefig=True)
+    # animate_results(stochastic_folder, deterministic_folder, n_obs)
