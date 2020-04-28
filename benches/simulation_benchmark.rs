@@ -9,8 +9,8 @@ pub fn criterion_benchmark(c: &mut Criterion) {
         b.iter(|| {
             let lvp = LotkaVolterraParameters::new(0.6, 0.2, 0.75, 1.2);
             let sp = SimulationParameters::new(0.0, 15.0, 10000);
-            let mut lv_simulation = LotkaVolterraSimulation::new(&sp, lvp);
-            lv_simulation.run_single_stochastic(3.0, 5.0, 0.1, 0.2);
+            let mut lv_simulation = LotkaVolterraSimulation::new(&sp, lvp, 0.1, 0.1);
+            lv_simulation.run_single_stochastic(3.0, 5.0);
         })
     });
 }

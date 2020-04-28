@@ -10,15 +10,19 @@ pub struct LotkaVolterraSimulation {
     time: Vec<f64>,
     dt: f64,
     lvp: LotkaVolterraParameters,
+    sigma_x: f64,
+    sigma_y: f64
 }
 
 impl LotkaVolterraSimulation {
-    pub fn new(sp: &SimulationParameters, lvp: LotkaVolterraParameters) -> LotkaVolterraSimulation {
+    pub fn new(sp: &SimulationParameters, lvp: LotkaVolterraParameters, sigma_x: f64, sigma_y: f64) -> LotkaVolterraSimulation {
         LotkaVolterraSimulation {
             predators_preys: vec![],
             time: sp.get_time(),
             dt: sp.dt(),
             lvp,
+            sigma_x,
+            sigma_y
         }
     }
 
@@ -38,14 +42,15 @@ impl LotkaVolterraSimulation {
     pub fn save_data(&self, folder: &str) {
         fs::create_dir(format!("data/{}", folder)).expect("Unable to create folder.");
         let lv_params = format!(
-            "dt={}_alpha={}_beta={}_delta={}_gamma={}",
+            "dt={}_alpha={}_beta={}_delta={}_gamma={}_sigma_x={}_sigma_y={}",
             self.dt,
             self.lvp.alpha(),
             self.lvp.beta(),
             self.lvp.delta(),
-            self.lvp.gamma()
+            self.lvp.gamma(),
+            self.sigma_x,
+            self.sigma_y
         );
-
         let values: Vec<_> = self
             .predators_preys
             .iter()
@@ -93,8 +98,6 @@ impl LotkaVolterraSimulation {
         &mut self,
         initial_x: f64,
         initial_y: f64,
-        sigma_x: f64,
-        sigma_y: f64,
     ) {
         let (mut x, mut y) =
             self.get_initial_predators_preys(self.time.len(), initial_x, initial_y);
@@ -105,10 +108,10 @@ impl LotkaVolterraSimulation {
         for i in 1..self.time.len() {
             x[i] = x[i - 1]
                 + (self.lvp.alpha() * x[i - 1] - self.lvp.beta() * x[i - 1] * y[i - 1]) * self.dt
-                + sigma_x * noise_prey[i];
+                + self.sigma_x * noise_prey[i];
             y[i] = y[i - 1]
                 + (self.lvp.delta() * x[i - 1] * y[i - 1] - self.lvp.gamma() * y[i - 1]) * self.dt
-                + sigma_y * noise_predator[i];
+                + self.sigma_y * noise_predator[i];
         }
         self.predators_preys.push((x, y));
     }
@@ -118,18 +121,16 @@ impl LotkaVolterraSimulation {
         n_iteration: i32,
         initial_x: f64,
         initial_y: f64,
-        sigma_x: f64,
-        sigma_y: f64,
     ) {
         for _ in 0..n_iteration {
-            self.run_single_stochastic(initial_x, initial_y, sigma_x, sigma_y);
+            self.run_single_stochastic(initial_x, initial_y);
         }
     }
 
-    fn create_normal_noise(&self, lenght: usize, mu: f64, sigma: f64) -> Vec<f64> {
+    fn create_normal_noise(&self, length: usize, mu: f64, sigma: f64) -> Vec<f64> {
         // Can be optimized if mu=0, sigma=1
         // https://docs.rs/rand_distr/0.2.2/rand_distr/struct.StandardNormal.html
-        (0..lenght)
+        (0..length)
             .map(|_| generate_from_normal_distr(mu, sigma) * self.dt.sqrt())
             .collect()
     }
