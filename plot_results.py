@@ -8,11 +8,16 @@ from matplotlib import animation, rcParams, cycler
 cmap = plt.cm.jet
 
 
-def get_sigma_x_y(stochastic_folder: str):
-    file = glob.glob(stochastic_folder + "/*.csv")[0]
-    if not file:
-        print('Could not load sigma x and sigma y from file')
+def get_files_from(folder: str):
+    files = glob.glob(folder + "/*.csv")
+    if not files:
+        print(f"Cannot load files from: [{folder}]. Folder is empty.")
         return
+    return files
+
+
+def get_sigma_x_y(stochastic_folder: str):
+    file = get_files_from(stochastic_folder)[0]
     sigmas = file.split('sigma_x=')[1].split('_sigma_y=')
     sigma_x = sigmas[0]
     sigma_y = sigmas[1].split('_')[0]
@@ -20,10 +25,7 @@ def get_sigma_x_y(stochastic_folder: str):
 
 
 def get_lotka_volterra_params(stochastic_folder: str):
-    file = glob.glob(stochastic_folder + "/*.csv")[0]
-    if not file:
-        print('Could not load Lotka-Volterra parameters from file')
-        return
+    file = get_files_from(stochastic_folder)[0]
     params = file.split('_alpha=')[1].split('_beta=')
     alpha = params[0]
     params = params[1].split('_delta=')
@@ -41,12 +43,8 @@ def get_dt_from_file(filename: str):
 
 
 def load_datasets(folder: str, n_obs: int) -> list:
-    files = glob.glob(folder + "/*.csv")
-    if len(files) < 1:
-        print(f"Not found datasets in [{folder}]")
-        return
     dfs = []
-    for filename in files:
+    for filename in get_files_from(folder):
         df = pd.read_csv(filename, index_col=None, header=0)
         df.columns = ["prey", "predator"]
         dt = get_dt_from_file(filename)
@@ -64,12 +62,10 @@ def get_y_lim(dfs, df_deterministic):
     y_min = []
     y_max = []
     for df in dfs:
-        y_min.append(np.min([np.min(df.prey), np.min(df.predator)]))
-        y_max.append(np.max([np.max(df.prey), np.max(df.predator)]))
-    y_min.append(np.min([np.min(df_deterministic.prey),
-                         np.min(df_deterministic.predator)]))
-    y_max.append(np.max([np.max(df_deterministic.prey),
-                         np.max(df_deterministic.predator)]))
+        y_min.append(df[["prey", "predator"]].min())
+        y_max.append(df[["prey", "predator"]].max())
+    y_min.append(df_deterministic[["prey", "predator"]].min())
+    y_max.append(df_deterministic[["prey", "predator"]].max())
     return np.min(y_min), np.max(y_max)
 
 
@@ -83,7 +79,7 @@ def animate_results(stochastic_folder: str, deterministic_folder: str, n_obs: in
         plt.clf()
         plt.xlim(get_x_lim(dfs[0]))
         plt.ylim(get_y_lim(dfs, df_deterministic))
-        for num, df in enumerate(dfs[:5]):
+        for num, df in enumerate(dfs):
             plt.plot(df.time[: (i * 10)],
                      df.prey[: (i * 10)], label=f"stochastic prey {num + 1}")
             plt.plot(df.time[: (i * 10)],
@@ -91,14 +87,14 @@ def animate_results(stochastic_folder: str, deterministic_folder: str, n_obs: in
         plt.plot(
             df_deterministic.time[: (i * 10)],
             df_deterministic.prey[: (i * 10)],
-            label=f"deterministic prey",
+            label="deterministic prey",
             color="black",
             linewidth=2.5
         )
         plt.plot(
             df_deterministic.time[: (i * 10)],
             df_deterministic.predator[: (i * 10)],
-            label=f"deterministic predator",
+            label="deterministic predator",
             color="red",
             linewidth=2.5
         )
@@ -112,7 +108,8 @@ def animate_results(stochastic_folder: str, deterministic_folder: str, n_obs: in
         fig, animate, frames=(int)(len(dfs[0].time) / 10), interval=5, repeat=True
     )
     anim.save(
-        f'figures/animation_alpha={alpha}_beta={beta}_delta={delta}_gamma={gamma}_sigma_x={sigma_x}_sigma_y={sigma_y}.gif',
+        'animation_alpha={}_beta={}_delta={}_gamma={}_sigma_x={}_sigma_y={}.gif'.format(
+            alpha, beta, delta, gamma, sigma_x, sigma_y),
         writer="imagemagick")
 
 
@@ -151,7 +148,8 @@ def plot_results(stochastic_folder: str, deterministic_folder: str, n_obs: int, 
     plt.legend(loc='upper left')
     if savefig:
         plt.savefig(
-            f'figures/alpha={alpha}_beta={beta}_delta={delta}_gamma={gamma}_sigma_x={sigma_x}_sigma_y={sigma_y}.pdf',
+            'figures/alpha={}_beta={}_delta={}_gamma={}_sigma_x={}_sigma_y={}.pdf'.format(
+                alpha, beta, delta, gamma, sigma_x, sigma_y),
             bbox_inches='tight')
     else:
         plt.show()
@@ -181,7 +179,8 @@ def plot_phase_space(stochastic_folder: str, deterministic_folder: str, n_obs: i
     plt.legend()
     if savefig:
         plt.savefig(
-            f'figures/phase_diagram_alpha={alpha}_beta={beta}_delta={delta}_gamma={gamma}_sigma_x={sigma_x}_sigma_y={sigma_y}.pdf',
+            'figures/phase_diagram_alpha={}_beta={}_delta={}_gamma={}_sigma_x={}_sigma_y={}.pdf'.format(
+                alpha, beta, delta, gamma, sigma_x, sigma_y),
             bbox_inches='tight')
     else:
         plt.show()
@@ -192,25 +191,38 @@ if __name__ == "__main__":
     parser.add_argument(
         "--stochastic_folder_name",
         type=str,
-        help="Name of folder with stochastic solution",
+        help="Name of the folder with stochastic solutions",
         required=True,
     )
     parser.add_argument(
-        "--n_obs_stochastic", type=int, help="Number of stochastic runs", required=True
+        "--n_obs_stochastic", type=int, help="Number of the stochastic runs", required=True
     )
     parser.add_argument(
         "--deterministic_folder_name",
         type=str,
-        help="Name of folder with deterministic solution",
+        help="Name of the folder with deterministic solution",
         required=True,
+    )
+    parser.add_argument(
+        "--action",
+        type=str,
+        help="Type of action: [plot_time, animation_time, plot_diagram]",
+        required=True
     )
 
     results = parser.parse_args()
     stochastic_folder = results.stochastic_folder_name
     n_obs = results.n_obs_stochastic
     deterministic_folder = results.deterministic_folder_name
+    action_type = results.action
 
-    # plot_results(stochastic_folder, deterministic_folder, n_obs, savefig=True)
-    # plot_phase_space(stochastic_folder, deterministic_folder,
-    #                  n_obs, savefig=True)
-    animate_results(stochastic_folder, deterministic_folder, n_obs)
+    if action_type == "plot_time":
+        plot_results(stochastic_folder, deterministic_folder,
+                     n_obs, savefig=False)
+    elif action_type == "animation_time":
+        animate_results(stochastic_folder, deterministic_folder, n_obs)
+    elif action_type == "plot_diagram":
+        plot_phase_space(stochastic_folder, deterministic_folder,
+                         n_obs, savefig=False)
+    else:
+        print(f'{[action_type]} is not a valid action parameter')
